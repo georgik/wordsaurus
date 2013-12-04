@@ -39,8 +39,7 @@ phonecatApp.controller('PhoneListCtrl', function ($scope) {
             keyQuery = keyQuery.replace("+","%");
             valueQuery = valueQuery.replace("+","%");
 
-            var count = valueQuery.match(/%/g);
-            if (count == 0) {
+            if (valueQuery != "%") {
                 valueQuery = "%" + valueQuery + "%";
             }
 
