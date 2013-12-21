@@ -20,11 +20,14 @@
         <div>
 
             <form ng-submit="onSearchChange()">
-                <input type="text" ng-model="searchKey" placeholder="Key" >
-                <input type="text" ng-model="searchValue" placeholder="Description" >
-                <input type="button" ng-click="onSearchChange()" value="Search for words">
+                <input type="text" ng-model="searchKey" placeholder="Slovo" >
+                <input type="text" ng-model="searchValue" placeholder="Popis" >
+                <input type="button" ng-click="onSearchChange()" value="Hledat">
+                <input type="button" ng-click="onSearchClear()" value="Nový">
             </form>
             <hr>
+            <h3 ng-show="isSearchInProgress">Hledám</h3>
+            <h3 ng-show="isResultEmpty">Žádný výsledek...</h3>
             <ul>
                 <li ng-repeat="record in records">{{record.k}} - {{record.v}}</li>
             </ul>
