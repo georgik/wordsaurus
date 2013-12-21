@@ -29,18 +29,22 @@ phonecatApp.controller('PhoneListCtrl', function ($scope) {
                 keyQuery = "%";
             }
 
-            if ((valueQuery == null) || (valueQuery == "")) {
-                valueQuery = "%";
+            if (valueQuery == null) {
+                valueQuery = "";
             }
 
-            keyQuery = keyQuery.replace(".","_");
-            valueQuery = valueQuery.replace(".","_");
+            keyQuery = keyQuery.replace(/\./g,"_");
+            valueQuery = valueQuery.replace(/\./g,"_");
 
             keyQuery = keyQuery.replace("+","%");
             valueQuery = valueQuery.replace("+","%");
 
-            if (valueQuery != "%") {
-                valueQuery = "%" + valueQuery + "%";
+            if (valueQuery.indexOf("%") == -1) {
+                if (valueQuery == "") {
+                    valueQuery = "%";
+                } else {
+                    valueQuery = "%" + valueQuery + "%";
+                }
             }
 
             var queryString = "select record_key, record_descr from dictionary where record_key LIKE ? and record_descr like ? limit 50;";
