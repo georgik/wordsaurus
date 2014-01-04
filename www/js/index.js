@@ -14,7 +14,6 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
 
 
     $scope.processSearchResults = function (tx, res) {
-        console.log("Loaded:"+res.rows.length);
         $scope.records = [];
         for (var i=0; i<res.rows.length; i++) {
             $scope.records.push(
@@ -46,17 +45,36 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
                 keyQuery = keyQuery.replace("+","%");
                 valueQuery = valueQuery.replace("+","%");
 
-                if (valueQuery.indexOf("%") == -1) {
-                    if (valueQuery == "") {
-                        valueQuery = "%";
-                    } else {
-                        valueQuery = "%" + valueQuery + "%";
-                    }
+                var queryFields = [keyQuery];
+                var queryString = "select record_key, record_descr from dictionary where record_key LIKE ? ";
+
+
+                var valueParts = valueQuery.split(" ");
+
+                if (valueQuery == "") {
+                    valueParts.push("%");
                 }
 
-                var queryString = "select record_key, record_descr from dictionary where record_key LIKE ? and record_descr like ? limit 50;";
+                for (var index = 0 ; index < valueParts.length; index++) {
+                    var part = valueParts[index];
+                    if (part.length == 0) {
+                        continue;
+                    }
 
-                tx.executeSql(queryString, [keyQuery, valueQuery], $scope.processSearchResults);
+                    if (part.indexOf("%") == -1) {
+                        if (part != "") {
+                            part = "%" + part + "%";
+                        }
+                    }
+
+
+                    queryString += "and record_descr like ? ";
+                    queryFields.push(part)
+                }
+
+                queryString += "limit 50;";
+
+                tx.executeSql(queryString, queryFields, $scope.processSearchResults);
             })});
 
     };
