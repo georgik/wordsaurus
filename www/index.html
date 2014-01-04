@@ -6,7 +6,7 @@
         <meta name="format-detection" content="telephone=no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
-        <!--<link rel="stylesheet" type="text/css" href="css/index.css" />-->
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
         <title>Wordsaurus</title>
     </head>
     <body ng-controller="PhoneListCtrl" ng-init="initialize()">
@@ -17,20 +17,23 @@
         <script type="text/javascript" src="js/angular-touch.min.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
 
-        <div>
+        <div class="appContainer">
 
             <form ng-submit="onSearchChange()">
-                <input type="text" ng-model="searchKey" placeholder="Slovo" >
-                <input type="text" ng-model="searchValue" placeholder="Popis" >
-                <input type="button" ng-click="onSearchChange()" value="Hledat">
-                <input type="button" ng-click="onSearchClear()" value="Nový">
+                <input class="inputField" type="text" ng-model="searchKey" placeholder="Slovo" >
+                <input class="inputField" type="text" ng-model="searchValue" placeholder="Popis" >
+                <input class="inputButton" type="button" ng-click="onSearchChange()" value="Hledat">
+                <input class="inputButton" type="button" ng-click="onSearchClear()" value="Nový">
             </form>
             <hr>
+        </div>
+        <div class="resultContainer">
             <h3 ng-show="isSearchInProgress">Hledám</h3>
             <h3 ng-show="isResultEmpty">Žádný výsledek...</h3>
             <ul>
                 <li ng-repeat="record in records">{{record.k}} - {{record.v}}</li>
             </ul>
         </div>
+
     </body>
 </html>

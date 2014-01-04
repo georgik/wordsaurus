@@ -14,11 +14,27 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
 
 
     $scope.processSearchResults = function (tx, res) {
+        /*var wordList = $scope.searchValue.split(" ");
+        var highlightList = [];
+        for (var wordIndex = 0; wordIndex < wordList.length; wordIndex++) {
+            var searchWord = wordList[wordIndex];
+            if (searchWord.length > 0) {
+                highlightList.push(new RegExp("(" + searchWord + ")", 'gi'));
+            }
+        }*/
+
         $scope.records = [];
         for (var i=0; i<res.rows.length; i++) {
+            var word = res.rows.item(i).record_descr;
+
+/*            // Apply highlight
+            for (var highIndex = 0; highIndex < highlightList.length; highIndex++) {
+                word = word.replace(highlightList[highIndex], '<span class="highlight">$1</span>');
+            }*/
+
             $scope.records.push(
                 {'k': res.rows.item(i).record_key,
-                    'v': res.rows.item(i).record_descr});
+                    'v': word });
         }
         $scope.isResultEmpty = ($scope.records.length == 0);
         $scope.isSearchInProgress = false;

@@ -1,0 +1,55 @@
+body {
+    margin: 0;
+    border: 0;
+    font-family: Arial, Verdana, sans-serif;
+    font-size: 1.2em;
+    background: white;
+}
+
+form {
+    margin: 0.3em 0 0;
+    text-align: center;
+}
+.inputField {
+    font-size: 1.4em;
+    width: 99%;
+    margin-top: 0.3em;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    border: 1px solid lightgray;
+}
+
+.inputButton {
+    width: 48%;
+    font-size: 1.2em;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: lightgrey;
+    margin: 0;
+}
+
+.resultContainer {
+    padding: 2px;
+}
+
+li:nth-child(odd) {
+    background: white;
+
+}
+
+li:nth-child(even) {
+    background: #eee;
+}
+li {
+    list-style-type: none;
+    margin-top: 0.3em;
+}
+ul { padding: 0;}
+
+.highlight {
+    background: yellow;
+}
