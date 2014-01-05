@@ -31,7 +31,7 @@
             <h3 ng-show="isSearchInProgress">Hledám</h3>
             <h3 ng-show="isResultEmpty">Žádný výsledek...</h3>
             <ul>
-                <li ng-repeat="record in records">{{record.k}} - {{record.v}}</li>
+                <li ng-repeat="record in records"><b>{{record.k}}</b> - {{record.v}}</li>
             </ul>
         </div>
 
