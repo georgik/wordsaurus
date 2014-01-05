@@ -25,6 +25,11 @@ form {
     font-size: 1.2em;
 }
 
+.moreResultsButton {
+    width: 100%;
+    font-size: 1.2em;
+}
+
 hr {
     border: 0;
     height: 1px;

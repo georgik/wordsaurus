@@ -8,6 +8,11 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
     $scope.isSearchInProgress = false;
     $scope.isResultEmpty = true;
 
+    $scope.isMoreRecordsAvaialble = false;
+
+    // How many records load per one page
+    $scope.pageSize = 100;
+
     $scope.initialize =  function() {
         document.addEventListener('deviceready', $scope.onDeviceReady, false);
     };
@@ -23,7 +28,6 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
             }
         }*/
 
-        $scope.records = [];
         for (var i=0; i<res.rows.length; i++) {
             var word = res.rows.item(i).record_descr;
 
@@ -37,13 +41,14 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
                     'v': word });
         }
         $scope.isResultEmpty = ($scope.records.length == 0);
+        $scope.isMoreRecordsAvaialble = (res.rows.length == $scope.pageSize);
         $scope.isSearchInProgress = false;
     };
 
     $scope.search = function(keyQuery, valueQuery) {
         $scope.isSearchInProgress = true;
         $scope.isResultEmpty = false;
-        $scope.records = [];
+
         $timeout(function() {
             db.transaction(function(tx) {
 
@@ -88,11 +93,15 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
                     queryFields.push(part)
                 }
 
-                queryString += "limit 50;";
+                queryString += "limit " + $scope.records.length + "," + $scope.pageSize + ";";
 
                 tx.executeSql(queryString, queryFields, $scope.processSearchResults);
             })});
 
+    };
+
+    $scope.loadMoreResults = function() {
+        $scope.search($scope.searchKey, $scope.searchValue);
     };
 
     $scope.onSearchClear = function(event) {
@@ -100,6 +109,7 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
         $scope.searchValue = "";
         $scope.records = [];
         $scope.isResultEmpty = true;
+        $scope.isMoreRecordsAvaialble = false;
     };
 
     $scope.onDeviceReady = function() {
@@ -108,6 +118,7 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
     };
 
     $scope.onSearchChange = function(event) {
+        $scope.records = [];
         $scope.search($scope.searchKey, $scope.searchValue);
     }
 

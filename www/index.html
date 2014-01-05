@@ -33,6 +33,7 @@
             <ul>
                 <li ng-repeat="record in records"><b>{{record.k}}</b> - {{record.v}}</li>
             </ul>
+            <input class="moreResultsButton" ng-show="isMoreRecordsAvaialble" type="button" value="Zobrazit další" ng-click="loadMoreResults()">
         </div>
 
     </body>
