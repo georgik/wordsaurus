@@ -63,8 +63,8 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
                 keyQuery = keyQuery.replace(/\./g,"_");
                 valueQuery = valueQuery.replace(/\./g,"_");
 
-                keyQuery = keyQuery.replace("+","%");
-                valueQuery = valueQuery.replace("+","%");
+                keyQuery = keyQuery.replace(/\+/g,"%");
+                valueQuery = valueQuery.replace(/\+/g,"%");
 
                 var queryFields = [keyQuery];
                 var queryString = "select record_key, record_descr from dictionary where record_key LIKE ? ";
