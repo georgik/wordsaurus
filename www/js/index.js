@@ -110,7 +110,7 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
         db = window.sqlitePlugin.openDatabase("vks", "1.0", "My Database", -1);
         $scope.isDatabaseReady = true;
         $scope.isMenuVisible = false;
-
+        $scope.$apply();
     };
 
     $scope.closeDatabase = function() {
