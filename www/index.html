@@ -19,15 +19,19 @@
 
         <div class="appContainer">
 
-            <form ng-submit="onSearchChange()">
+            <form ng-submit="onSearchChange()" ng-show="isDatabaseReady">
                 <input class="inputField" type="text" ng-model="searchKey" placeholder="Slovo" >
                 <input class="inputField" type="text" ng-model="searchValue" placeholder="Popis" >
                 <input class="inputButton" type="button" ng-click="onSearchChange()" value="Hledat">
                 <input class="inputButton" type="button" ng-click="onSearchClear()" value="Nový">
             </form>
             <hr>
+            <div id="menu" ng-show="isMenuVisible">
+                <input type="button" ng-click="openFile()" value="Open new database">
+                <input type="button" ng-click="deleteDatabase()" value="Delete" ng-show="isDatabaseReady">
+            </div>
         </div>
-        <div class="resultContainer">
+        <div class="resultContainer" ng-show="isDatabaseReady">
             <h3 ng-show="isSearchInProgress">Hledám</h3>
             <h3 ng-show="isResultEmpty">Žádný výsledek...</h3>
             <ul>

@@ -7,6 +7,8 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
     $scope.searchValue = "";
     $scope.isSearchInProgress = false;
     $scope.isResultEmpty = true;
+    $scope.isMenuVisible = false;
+    $scope.isDatabaseReady = false;
 
     $scope.isMoreRecordsAvaialble = false;
 
@@ -15,26 +17,13 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
 
     $scope.initialize =  function() {
         document.addEventListener('deviceready', $scope.onDeviceReady, false);
+        document.addEventListener("menubutton", $scope.menuButtonEvent, false);
     };
 
 
     $scope.processSearchResults = function (tx, res) {
-        /*var wordList = $scope.searchValue.split(" ");
-        var highlightList = [];
-        for (var wordIndex = 0; wordIndex < wordList.length; wordIndex++) {
-            var searchWord = wordList[wordIndex];
-            if (searchWord.length > 0) {
-                highlightList.push(new RegExp("(" + searchWord + ")", 'gi'));
-            }
-        }*/
-
         for (var i=0; i<res.rows.length; i++) {
             var word = res.rows.item(i).record_descr;
-
-/*            // Apply highlight
-            for (var highIndex = 0; highIndex < highlightList.length; highIndex++) {
-                word = word.replace(highlightList[highIndex], '<span class="highlight">$1</span>');
-            }*/
 
             $scope.records.push(
                 {'k': res.rows.item(i).record_key,
@@ -112,14 +101,77 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $timeout) {
         $scope.isMoreRecordsAvaialble = false;
     };
 
-    $scope.onDeviceReady = function() {
+    $scope.menuButtonEvent = function (evt) {
+        $scope.isMenuVisible = !$scope.isMenuVisible;
+        $scope.$apply();
+    };
+
+    $scope.openDatabase = function() {
         db = window.sqlitePlugin.openDatabase("vks", "1.0", "My Database", -1);
-        //$scope.search(null, null);
+        $scope.isDatabaseReady = true;
+        $scope.isMenuVisible = false;
+
+    };
+
+    $scope.closeDatabase = function() {
+        $scope.isDatabaseReady = false;
+        if (db) {
+            db.close();
+            db = null;
+        }
+    };
+
+    $scope.deleteDatabase = function() {
+        $scope.closeDatabase();
+        window.sqlitePlugin.deleteDatabase("vks", $scope.databaseDeleted, $scope.databaseDeleteError);
+    };
+
+    $scope.databaseDeleted = function (evt) {
+        alert("Database deleted");
+    };
+
+    $scope.databaseDeleteError = function (evt) {
+        alert("Database delete failed");
+    };
+
+    $scope.databaseNotFound = function(evt) {
+        $scope.isMenuVisible = true;
+        $scope.$apply();
+    };
+
+    $scope.onDeviceReady = function() {
+        cordova.exec($scope.openDatabase, $scope.databaseNotFound, "DatabaseManagerPlugin",
+            "exists", ["vks"]);
     };
 
     $scope.onSearchChange = function(event) {
         $scope.records = [];
         $scope.search($scope.searchKey, $scope.searchValue);
-    }
+    };
 
+    $scope.openFile = function (event) {
+        fileChooser.open($scope.fileOpenSuccess, $scope.fileOpenFailed);
+    };
+
+    $scope.databaseReplaced = function (param) {
+        $scope.openDatabase();
+        alert("Database reloaded");
+        $scope.$apply();
+    };
+
+    $scope.databaseReplaceFailed = function(error) {
+        alert("Unable to update database");
+        $scope.openDatabase();
+    };
+
+    $scope.fileOpenSuccess = function (uri) {
+        $scope.isMenuVisible = false;
+        $scope.closeDatabase();
+        cordova.exec($scope.databaseReplaced, $scope.databaseReplaceFailed, "DatabaseManagerPlugin",
+            "load", [uri]);
+    };
+
+    $scope.fileOpenFailed = function (event) {
+        alert("Open failed");
+    };
 });

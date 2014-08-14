@@ -27,56 +27,12 @@ import java.io.*;
 
 public class Wordsaurus extends CordovaActivity 
 {
-    void copy(String file, String folder) throws IOException
-    {
-        File CheckDirectory;
-        CheckDirectory = new File(folder);
-
-        String parentPath = CheckDirectory.getParent();
-
-        File filedir = new File(parentPath);
-        if (!filedir.exists()) {
-            if (!filedir.mkdirs()) {
-                return;
-            }
-        }
-
-        File inputFile = new File(file);
-        if (inputFile.exists()) {
-            Log.w("com.sinusgear.saurus", "source file exists");
-        } else {
-            Log.w("com.sinusgear.saurus", "source file does not exist");
-        }
-        InputStream in = new FileInputStream(inputFile);
-
-        File newfile = new File(folder);
-        OutputStream out = new FileOutputStream(newfile);
-
-        byte[] buf = new byte[1024];
-        int len; while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
-        in.close(); out.close();
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         super.init();
-        try
-        {
-            File dbFile = getDatabasePath("vks.db");
-            if(!dbFile.exists()){
-                Log.w("com.sinusgear.saurus", "installing DB");
-                this.copy("/mnt/sdcard/Download/vks.db",dbFile.getAbsolutePath());
-            } else {
-                Log.w("com.sinusgear.saurus", "db file is already in place");
-            }
-        }
-        catch (Exception e)
-        {
-            Log.w("com.sinusgear.saurus", "unable to copy db");
-            e.printStackTrace();
-        }
 
         // Set by <content src="index.html" /> in config.xml
         super.loadUrl(Config.getStartUrl());
