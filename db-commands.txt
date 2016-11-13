@@ -1,0 +1,11 @@
+Case sensitive on diacritics:
+
+CREATE VIRTUAL TABLE ftsdict USING fts4 (content='dictionary', record_key, record_descr)
+
+drop table ftsdict;
+
+Case insensitive on diacritics
+
+CREATE VIRTUAL TABLE ftsdict USING fts4 (tokenize=unicode61 "remove_diacritics=0", content='dictionary', record_key, record_descr);
+INSERT INTO ftsdict(ftsdict) VALUES('rebuild');
+

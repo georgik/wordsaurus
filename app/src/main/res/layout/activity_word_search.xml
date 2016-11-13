@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_word_search"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="saurus.sinusgear.com.wordsaurus.WordSearchActivity">
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:inputType="text"
+        android:ems="10"
+        android:id="@+id/wordText"
+        android:hint="Slovo"
+        android:typeface="monospace"
+        style="@style/Widget.AppCompat.AutoCompleteTextView"
+        app:layout_constraintLeft_toLeftOf="@+id/activity_word_search"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toTopOf="@+id/activity_word_search"
+        android:layout_marginTop="16dp"
+        app:layout_constraintRight_toRightOf="@+id/activity_word_search"
+        android:layout_marginEnd="16dp" />
+
+    <EditText
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:inputType="text"
+        android:ems="10"
+        android:id="@+id/descriptionText"
+        android:hint="Popis"
+        android:typeface="monospace"
+        style="@style/Widget.AppCompat.AutoCompleteTextView"
+        app:layout_constraintLeft_toLeftOf="@+id/activity_word_search"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/wordText"
+        android:layout_marginTop="8dp"
+        app:layout_constraintRight_toRightOf="@+id/activity_word_search"
+        android:layout_marginEnd="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/container"
+        app:layout_constraintRight_toRightOf="@+id/activity_word_search"
+        android:layout_marginStart="0dp"
+        app:layout_constraintLeft_toLeftOf="@+id/activity_word_search"
+        android:orientation="horizontal"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintTop_toBottomOf="@+id/descriptionText" >
+
+        <Button
+            android:text="Hledat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/searchButton"
+            android:onClick="searchAction"
+            app:layout_constraintLeft_toLeftOf="@+id/activity_word_search"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/descriptionText" />
+
+        <Button
+            android:text="Nový"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/newSearchButton"
+            app:layout_constraintLeft_toRightOf="@+id/searchButton"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            />
+        <Switch
+            android:id="@+id/slowSearchSwitch"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/resultListView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="@+id/activity_word_search"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/container"
+        android:layout_marginTop="8dp"
+        app:layout_constraintRight_toRightOf="@+id/activity_word_search"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/activity_word_search"
+        android:layout_marginBottom="16dp">
+    </ListView>
+
+    <TextView
+        android:text="0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteY="165dp"
+        tools:layout_editor_absoluteX="339dp"
+        android:layout_marginEnd="8dp"
+        android:padding="4dp"
+        app:layout_constraintTop_toBottomOf="@+id/container"
+        app:layout_constraintEnd_toEndOf="@+id/activity_word_search"
+        android:id="@+id/resultCountTextView"
+        android:background="@drawable/bg_circle"/>
+
+
+</android.support.constraint.ConstraintLayout>
