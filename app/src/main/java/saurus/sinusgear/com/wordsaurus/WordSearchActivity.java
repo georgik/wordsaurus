@@ -1,30 +1,48 @@
 package saurus.sinusgear.com.wordsaurus;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import saurus.sinusgear.com.wordsaurus.databinding.ActivityWordSearchBinding;
+
 public class WordSearchActivity extends AppCompatActivity {
 
+    private static final String TAG = "WordSearchActivity";
+
+    private ActivityWordSearchBinding binding;
+    private WordAdapter resultAdapter;
+    private SQLiteDatabase database;
+    private List<Map<String, String>> resultList;
+    private ActivityResultLauncher<Intent> pickDbLauncher;
+
     private HashMap<String, String> createEntry(String name, String description, int rank) {
-        HashMap<String, String> item = new HashMap<String, String>();
+        HashMap<String, String> item = new HashMap<>();
         item.put("key", name);
         item.put("descr", description);
         if (rank == 1) {
@@ -38,25 +56,11 @@ public class WordSearchActivity extends AppCompatActivity {
         return item;
     }
 
-    private ListView resultView;
-    private WordAdapter resultAdapter;
-    private SQLiteDatabase database;
-    private List<Map<String, String>> resultList;
-
     private String normalizeQuery(String query) {
-        String result = "";
-
-        if (query == null) {
+        if (query == null || query.isEmpty()) {
             return "";
         }
-
-        if (query.isEmpty()) {
-            return "";
-        }
-
-        result = query.replace("+", "%").replace(".", "_").replace("?", "%");
-
-        return result;
+        return query.replace("+", "%").replace(".", "_").replace("?", "%");
     }
 
     private String[] getSearchTokens(String query) {
@@ -65,7 +69,6 @@ public class WordSearchActivity extends AppCompatActivity {
         }
         return query.split(" ");
     }
-
 
     private void addEmptyRecord() {
         resultList.add(createEntry("Žádný výsledek...", "", 0));
@@ -76,14 +79,10 @@ public class WordSearchActivity extends AppCompatActivity {
             return;
         }
 
-        // Exact match on search key
         String searchKey = normalizeQuery(key);
-
-        // Full text search on description
         String[] searchTokens = getSearchTokens(normalizeQuery(description));
 
         List<String> searchArguments = new ArrayList<>();
-
 
         StringBuilder queryString = new StringBuilder();
         queryString.append("SELECT docid,\n" +
@@ -92,7 +91,6 @@ public class WordSearchActivity extends AppCompatActivity {
                 "       MIN(rank) AS rank\n" +
                 "FROM (\n");
 
-        // Match on: (key, value) - ("abc", null)
         if ((!searchKey.isEmpty()) && (searchTokens.length == 0)) {
             queryString.append("      SELECT docid,\n" +
                     "             record_key,\n" +
@@ -103,11 +101,8 @@ public class WordSearchActivity extends AppCompatActivity {
             searchArguments.add(searchKey);
         }
 
-        // Rank 2 - exact match on description
-        // Rank 3 - full text match on description
         String searchToken = normalizeQuery(description);
         if (!searchToken.isEmpty()) {
-
             queryString.append("      SELECT docid,\n" +
                     "             record_key,\n" +
                     "             snippet(ftsdict) as record_descr,\n" +
@@ -134,12 +129,10 @@ public class WordSearchActivity extends AppCompatActivity {
             searchToken = searchToken.replace(" ", "* ");
             searchArguments.add(searchToken);
 
-
             if (!searchKey.isEmpty()) {
                 queryString.append(" AND record_key LIKE ? ");
                 searchArguments.add(searchKey);
             }
-
         }
 
         queryString.append(") GROUP BY docid\n" +
@@ -148,16 +141,15 @@ public class WordSearchActivity extends AppCompatActivity {
 
         queryString.append(" LIMIT 500");
 
-        Cursor cursor = database.rawQuery(queryString.toString(), searchArguments.toArray(new String[searchArguments.size()]));
+        Cursor cursor = database.rawQuery(queryString.toString(), searchArguments.toArray(new String[0]));
 
         resultList.clear();
-
 
         String resultKey;
         String resultValue;
         int resultRank;
 
-        String resutlCountString = "0";
+        String resultCountString = "0";
 
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
@@ -169,23 +161,21 @@ public class WordSearchActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
             cursor.close();
             if (resultList.size() < 499) {
-                resutlCountString = String.valueOf(resultList.size());
+                resultCountString = String.valueOf(resultList.size());
             } else {
-                resutlCountString = "500+";
+                resultCountString = "500+";
             }
         } else {
             addEmptyRecord();
         }
 
-        TextView resultCountTextView = (TextView) findViewById(R.id.resultCountTextView);
-        resultCountTextView.setText(resutlCountString);
-
+        binding.resultCountTextView.setText(resultCountString);
         resultAdapter.notifyDataSetInvalidated();
     }
 
     private String[] getSlowSearchTokens(String query) {
         String[] tokens = query.split(" ");
-        for (int i=0; i<tokens.length; i++) {
+        for (int i = 0; i < tokens.length; i++) {
             if (tokens[i].length() == 0) {
                 continue;
             }
@@ -199,29 +189,18 @@ public class WordSearchActivity extends AppCompatActivity {
     }
 
     private String normalizeSlowQuery(String query) {
-        String result = "";
-
-        if (query == null) {
+        if (query == null || query.isEmpty()) {
             return "%";
         }
-
-        if (query.isEmpty()) {
-            return "%";
-        }
-
-        result = query.replace("+", "%").replace(".", "_").replace("?", "%");
-
-        return result;
+        return query.replace("+", "%").replace(".", "_").replace("?", "%");
     }
 
     private void executeSlowSearch(String key, String description) {
         if (database == null) {
             return;
         }
-         // Exact match on search key
-        String searchKey = normalizeSlowQuery(key);
 
-        // Full text search on description
+        String searchKey = normalizeSlowQuery(key);
         String[] searchTokens = getSlowSearchTokens(normalizeSlowQuery(description));
 
         List<String> searchArguments = new ArrayList<>();
@@ -235,15 +214,14 @@ public class WordSearchActivity extends AppCompatActivity {
             searchArguments.add(searchToken);
         }
         queryString.append(" LIMIT 100");
-        Cursor cursor = database.rawQuery(queryString.toString(), searchArguments.toArray(new String[searchArguments.size()]));
+        Cursor cursor = database.rawQuery(queryString.toString(), searchArguments.toArray(new String[0]));
 
         resultList.clear();
-
 
         String resultKey;
         String resultValue;
 
-        String resutlCountString = "0";
+        String resultCountString = "0";
 
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
@@ -254,26 +232,23 @@ public class WordSearchActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
             cursor.close();
             if (resultList.size() < 99) {
-                resutlCountString = String.valueOf(resultList.size());
+                resultCountString = String.valueOf(resultList.size());
             } else {
-                resutlCountString = "100+";
+                resultCountString = "100+";
             }
         } else {
             addEmptyRecord();
         }
 
-        TextView resultCountTextView = (TextView) findViewById(R.id.resultCountTextView);
-        resultCountTextView.setText(resutlCountString);
-
+        binding.resultCountTextView.setText(resultCountString);
         resultAdapter.notifyDataSetInvalidated();
-//        progress.dismiss();
     }
 
     private void onSearch(View view, EditText wordText, EditText descriptionText) {
         String searchKey = "";
         String searchDescription = "";
 
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 
         if (wordText != null) {
@@ -284,13 +259,11 @@ public class WordSearchActivity extends AppCompatActivity {
             searchDescription = descriptionText.getText().toString();
         }
 
-        Switch slowSearchSwitch = (Switch) findViewById(R.id.slowSearchSwitch);
-
         if ((searchKey.isEmpty()) && (searchDescription.isEmpty())) {
             return;
         }
 
-        if (slowSearchSwitch.isChecked()) {
+        if (binding.slowSearchSwitch.isChecked()) {
             executeSlowSearch(searchKey, searchDescription);
         } else {
             executeFastSearch(searchKey, searchDescription);
@@ -300,20 +273,16 @@ public class WordSearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_word_search);
+        binding = ActivityWordSearchBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        final EditText wordText = (EditText) findViewById(R.id.wordText);
-        final EditText descriptionText = (EditText) findViewById(R.id.descriptionText);
+        final EditText wordText = binding.wordText;
+        final EditText descriptionText = binding.descriptionText;
 
-        // Process Enter key on word or description text
-        View.OnKeyListener onKeyListener = new View.OnKeyListener()
-        {
-            public boolean onKey(View view, int keyCode, KeyEvent event)
-            {
-                if (event.getAction() == KeyEvent.ACTION_DOWN)
-                {
-                    switch (keyCode)
-                    {
+        View.OnKeyListener onKeyListener = new View.OnKeyListener() {
+            public boolean onKey(View view, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    switch (keyCode) {
                         case KeyEvent.KEYCODE_DPAD_CENTER:
                         case KeyEvent.KEYCODE_ENTER:
                             onSearch(view, wordText, descriptionText);
@@ -329,46 +298,107 @@ public class WordSearchActivity extends AppCompatActivity {
         wordText.setOnKeyListener(onKeyListener);
         descriptionText.setOnKeyListener(onKeyListener);
 
-        resultList = new ArrayList<Map<String, String>>();
+        resultList = new ArrayList<>();
 
-        Button searchButton = (Button) findViewById(R.id.searchButton);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-
+        binding.searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 onSearch(view, wordText, descriptionText);
             }
         });
 
-        Button newSearchButton = (Button) findViewById(R.id.newSearchButton);
-        newSearchButton.setOnClickListener(new View.OnClickListener() {
+        binding.newSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (wordText != null) {
-                    wordText.setText("");
-                }
-
-                if (descriptionText != null) {
-                    descriptionText.setText("");
-                }
-
+                wordText.setText("");
+                descriptionText.setText("");
             }
         });
 
-        String filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/vks.db";
-        File file = new File(filePath);
+        pickDbLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri uri = result.getData().getData();
+                        String path = copyFromUri(uri);
+                        if (path != null) {
+                            database = openInternalDb(path);
+                        } else {
+                            Toast.makeText(this, "Failed to load dictionary", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
 
-        if (file.exists()) {
-            database = SQLiteDatabase.openDatabase(filePath, null, SQLiteDatabase.OPEN_READONLY);
-        } else {
-            database = null;
-        }
+        initDb();
 
         addEmptyRecord();
 
-        resultView = (ListView) findViewById(R.id.resultListView);
-        resultAdapter = new WordAdapter(this, resultList, R.layout.list_item_2_one_line, new String[]{"key","descr"}, new int[]{R.id.wordKey, R.id.wordDescription});
-        resultView.setSelectionFromTop(0,0);
-        resultView.setAdapter(resultAdapter);
+        resultAdapter = new WordAdapter(this, resultList, R.layout.list_item_2_one_line, new String[]{"key", "descr"}, new int[]{R.id.wordKey, R.id.wordDescription});
+        binding.resultListView.setSelectionFromTop(0, 0);
+        binding.resultListView.setAdapter(resultAdapter);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
+    }
+
+    private void initDb() {
+        File destDir = new File(getFilesDir(), "db");
+        destDir.mkdirs();
+        File destFile = new File(destDir, "vks.db");
+
+        if (destFile.exists()) {
+            Log.i(TAG, "Using existing DB: " + destFile.getAbsolutePath() + " (" + (destFile.length() / 1024) + " KB)");
+            database = openInternalDb(destFile.getAbsolutePath());
+            return;
+        }
+
+        Log.i(TAG, "Dictionary not loaded — launching file picker.");
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        String[] mimeTypes = {"application/octet-stream", "database/sqlite"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        try {
+            pickDbLauncher.launch(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "SAF picker failed: " + e.getMessage());
+        }
+    }
+
+    private String copyFromUri(Uri uri) {
+        File destDir = new File(getFilesDir(), "db");
+        destDir.mkdirs();
+        File destFile = new File(destDir, "vks.db");
+        try (java.io.InputStream in = getContentResolver().openInputStream(uri);
+             java.io.OutputStream out = new java.io.FileOutputStream(destFile)) {
+            if (in == null) {
+                Log.e(TAG, "Cannot open InputStream for URI");
+                return null;
+            }
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = in.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+            Log.i(TAG, "DB copied via SAF: " + destFile.getAbsolutePath() + " (" + (destFile.length() / 1024) + " KB)");
+            return destFile.getAbsolutePath();
+        } catch (Exception e) {
+            Log.e(TAG, "copyFromUri error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private SQLiteDatabase openInternalDb(String path) {
+        try {
+            SQLiteDatabase db = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY);
+            Log.i(TAG, "DB opened: " + path);
+            return db;
+        } catch (Exception e) {
+            Log.e(TAG, "openDatabase error: " + e.getMessage());
+            return null;
+        }
+    }
+
 }
